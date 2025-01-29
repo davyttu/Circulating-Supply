@@ -1,12 +1,12 @@
 require("dotenv").config();
-const express = require("express"); 
+const express = require("express");
 const { ethers } = require("ethers");
 
 const app = express();
 const port = process.env.PORT || 3000;
 
 // Configuration blockchain
-const provider = new ethers.providers.JsonRpcProvider(`https://base-mainnet.infura.io/v3/98eeedebb5c644399f17a9704b7519b5`);
+const provider = new ethers.providers.JsonRpcProvider(`https://base-mainnet.infura.io/v3/${process.env.INFURA_API_KEY}`);
 const tokenContractAddress = process.env.TOKEN_CONTRACT_ADDRESS;
 const communityAddress = process.env.COMMUNITY_ADDRESS;
 const liquidityPoolAddress = process.env.LIQUIDITY_POOL_ADDRESS;
@@ -42,16 +42,17 @@ async function calculateCirculatingSupply() {
     return Math.floor(parseFloat(ethers.utils.formatUnits(circulatingSupply, 18)));
 }
 
-// Endpoint REST pour la circulating supply
-app.get("/circulating-supply", async (req, res) => {
-    try {
-        const circulatingSupply = await calculateCirculatingSupply();
-        res.send(circulatingSupply.toString()); // Envoi de la valeur sans décimales
-    } catch (error) {
-        console.error("Erreur lors du calcul de la circulating supply:", error);
-        res.status(500).send("Erreur serveur");
+// Exporter la fonction handler pour Vercel (réponse à l'API)
+module.exports = async (req, res) => {
+    if (req.method === 'GET' && req.url === '/api/circulating-supply') {
+        try {
+            const circulatingSupply = await calculateCirculatingSupply();
+            res.status(200).send(circulatingSupply.toString()); // Envoi de la valeur sans décimales
+        } catch (error) {
+            console.error("Erreur lors du calcul de la circulating supply:", error);
+            res.status(500).send("Erreur serveur");
+        }
+    } else {
+        res.status(404).send("Page non trouvée");
     }
-} else {
-    res.status(404).send("Page non trouvée");
-}
 };
