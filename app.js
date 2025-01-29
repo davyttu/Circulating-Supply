@@ -4,8 +4,14 @@ const { ethers } = require("ethers");
 
 const app = express();
 
-// Configuration blockchain - Utilisation de la clé API via variable d'environnement
-const provider = new ethers.providers.JsonRpcProvider(`https://base-mainnet.infura.io/v3/${98eeedebb5c644399f17a9704b7519b5}`);
+// Debug : Vérifier si les variables d'environnement sont bien chargées
+console.log("INFURA_API_KEY:", process.env.INFURA_API_KEY);
+console.log("TOKEN_CONTRACT_ADDRESS:", process.env.TOKEN_CONTRACT_ADDRESS);
+console.log("COMMUNITY_ADDRESS:", process.env.COMMUNITY_ADDRESS);
+console.log("LIQUIDITY_POOL_ADDRESS:", process.env.LIQUIDITY_POOL_ADDRESS);
+
+// Configuration blockchain - Utilisation correcte de la clé API
+const provider = new ethers.providers.JsonRpcProvider(`https://base-mainnet.infura.io/v3/${process.env.INFURA_API_KEY}`);
 const tokenContractAddress = process.env.TOKEN_CONTRACT_ADDRESS;
 const communityAddress = process.env.COMMUNITY_ADDRESS;
 const liquidityPoolAddress = process.env.LIQUIDITY_POOL_ADDRESS;
@@ -52,5 +58,5 @@ app.get("/circulating-supply", async (req, res) => {
     }
 });
 
-// Vercel gère automatiquement le déploiement, pas besoin de 'localhost' ici
+// Vercel gère automatiquement le déploiement
 module.exports = app;
