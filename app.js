@@ -3,7 +3,7 @@ const express = require("express");
 const { ethers } = require("ethers");
 
 const app = express();
-const port = 3000;
+const port = process.env.PORT || 3000;
 
 // Configuration blockchain
 const provider = new ethers.providers.JsonRpcProvider(`https://base-mainnet.infura.io/v3/${process.env.INFURA_API_KEY}`);

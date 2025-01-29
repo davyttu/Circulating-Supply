@@ -1,0 +1,16 @@
+{
+    "version": 2,
+    "builds": [
+      {
+        "src": "app.js",
+        "use": "@vercel/node"
+      }
+    ],
+    "env": {
+      "INFURA_API_KEY": "https://base-mainnet.infura.io/v3/98eeedebb5c644399f17a9704b7519b5",
+      "TOKEN_CONTRACT_ADDRESS": "0x438f3e402Cd1eEe3d2Fb4Fb79f7900e8DAFCbFdf",
+      "COMMUNITY_ADDRESS": "0x74F91426bFc3099635300cA0376892e800563Fd4",
+      "LIQUIDITY_POOL_ADDRESS": "0x9358aA454BcE156b4c29723e7DdCfe4dDa84a819"
+    }
+  }
+  
