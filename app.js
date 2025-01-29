@@ -6,7 +6,7 @@ const app = express();
 const port = process.env.PORT || 3000;
 
 // Configuration blockchain
-const provider = new ethers.providers.JsonRpcProvider(`https://base-mainnet.infura.io/v3/${process.env.INFURA_API_KEY}`);
+const provider = new ethers.providers.JsonRpcProvider(`https://base-mainnet.infura.io/v3/98eeedebb5c644399f17a9704b7519b5`);
 const tokenContractAddress = process.env.TOKEN_CONTRACT_ADDRESS;
 const communityAddress = process.env.COMMUNITY_ADDRESS;
 const liquidityPoolAddress = process.env.LIQUIDITY_POOL_ADDRESS;
