@@ -3,9 +3,8 @@ const express = require("express");
 const { ethers } = require("ethers");
 
 const app = express();
-const port = process.env.PORT || 3000;
 
-// Configuration blockchain
+// Configuration blockchain - Utilisation de la clé API via variable d'environnement
 const provider = new ethers.providers.JsonRpcProvider(`https://base-mainnet.infura.io/v3/${98eeedebb5c644399f17a9704b7519b5}`);
 const tokenContractAddress = process.env.TOKEN_CONTRACT_ADDRESS;
 const communityAddress = process.env.COMMUNITY_ADDRESS;
@@ -38,21 +37,20 @@ async function calculateCirculatingSupply() {
         }
     });
 
-    // Retourner la circulating supply en unités humaines (18 décimales) sans chiffres après la virgule
+    // Retourner la circulating supply en unités humaines (18 décimales)
     return Math.floor(parseFloat(ethers.utils.formatUnits(circulatingSupply, 18)));
 }
 
-// Exporter la fonction handler pour Vercel (réponse à l'API)
-module.exports = async (req, res) => {
-    if (req.method === 'GET' && req.url === '/api/circulating-supply') {
-        try {
-            const circulatingSupply = await calculateCirculatingSupply();
-            res.status(200).send(circulatingSupply.toString()); // Envoi de la valeur sans décimales
-        } catch (error) {
-            console.error("Erreur lors du calcul de la circulating supply:", error);
-            res.status(500).send("Erreur serveur");
-        }
-    } else {
-        res.status(404).send("Page non trouvée");
+// Endpoint pour la circulating supply
+app.get("/circulating-supply", async (req, res) => {
+    try {
+        const circulatingSupply = await calculateCirculatingSupply();
+        res.send(circulatingSupply.toString()); // Envoi de la valeur sans décimales
+    } catch (error) {
+        console.error("Erreur lors du calcul de la circulating supply:", error);
+        res.status(500).send("Erreur serveur");
     }
-};
+});
+
+// Vercel gère automatiquement le déploiement, pas besoin de 'localhost' ici
+module.exports = app;
