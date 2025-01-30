@@ -74,6 +74,5 @@ app.get("/circulating-supply", async (req, res) => {
     }
 });
 
-app.listen(3000, () => {
-    console.log("Serveur démarré sur http://localhost:3000");
-});
+module.exports = app;
+
