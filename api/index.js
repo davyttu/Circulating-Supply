@@ -1,8 +1,5 @@
 const Web3 = require("web3");
 require("dotenv").config();
-const express = require('express');
-
-const app = express();
 
 // Configuration blockchain - Utilisation de la clé API via variable d'environnement
 const web3 = new Web3(`https://base-mainnet.infura.io/v3/${process.env.INFURA_API_KEY}`);
@@ -15,9 +12,21 @@ const abi = [
   {
     "anonymous": false,
     "inputs": [
-      { "indexed": true, "name": "from", "type": "address" },
-      { "indexed": true, "name": "to", "type": "address" },
-      { "indexed": false, "name": "value", "type": "uint256" }
+      {
+        "indexed": true,
+        "name": "from",
+        "type": "address"
+      },
+      {
+        "indexed": true,
+        "name": "to",
+        "type": "address"
+      },
+      {
+        "indexed": false,
+        "name": "value",
+        "type": "uint256"
+      }
     ],
     "name": "Transfer",
     "type": "event"
@@ -29,53 +38,44 @@ const tokenContract = new web3.eth.Contract(abi, tokenContractAddress);
 
 // Fonction pour calculer la circulating supply
 async function calculateCirculatingSupply() {
-    let circulatingSupply = web3.utils.toBN(0);
-    const BATCH_SIZE = 10000; // Nombre de blocs à récupérer par batch
+    let circulatingSupply = web3.utils.toBN(0);  // Déclare circulatingSupply comme un objet BigNumber de Web3
 
-    try {
-        const latestBlock = await web3.eth.getBlockNumber();
-        let fromBlock = Math.max(latestBlock - 500000, 0); // Limite aux 500 000 derniers blocs
+    // Filtrer les événements Transfer émis par le contrat
+    const transferEvents = await tokenContract.getPastEvents('Transfer', {
+        fromBlock: 0,  // Choisis le bloc de départ selon tes besoins (ex. block 0)
+        toBlock: 'latest' // Le dernier bloc (le plus récent)
+    });
 
-        while (fromBlock < latestBlock) {
-            const toBlock = Math.min(fromBlock + BATCH_SIZE, latestBlock);
-            console.log(`Fetching events from block ${fromBlock} to ${toBlock}...`);
+    // Parcourir les événements pour compter les tokens sortants
+    transferEvents.forEach((event) => {
+        const { from, to, value } = event.returnValues;
 
-            const transferEvents = await tokenContract.getPastEvents('Transfer', {
-                fromBlock,
-                toBlock
-            });
-
-            // Traiter les événements
-            transferEvents.forEach(event => {
-                const { from, value } = event.returnValues;
-                if (from.toLowerCase() === communityAddress.toLowerCase() || from.toLowerCase() === liquidityPoolAddress.toLowerCase()) {
-                    circulatingSupply = circulatingSupply.add(web3.utils.toBN(value));
-                }
-            });
-
-            fromBlock += BATCH_SIZE; // Passer au batch suivant
+        // Si les tokens sortent de communityAddress ou de liquidityPoolAddress
+        if (from.toLowerCase() === communityAddress.toLowerCase() || from.toLowerCase() === liquidityPoolAddress.toLowerCase()) {
+            circulatingSupply = circulatingSupply.add(web3.utils.toBN(value));
         }
+    });
 
-        return web3.utils.fromWei(circulatingSupply, 'ether'); // Convertir en unités lisibles
-    } catch (error) {
-        console.error("Erreur lors du calcul de la circulating supply:", error);
-        return "Erreur de récupération";
-    }
+    // Retourner la circulating supply en unités humaines (18 décimales)
+    return web3.utils.fromWei(circulatingSupply, 'ether');  // Retourne la circulating supply en "ether" (avec 18 décimales)
 }
 
-// Route API pour récupérer la circulating supply
+// Test de la fonction dans un endpoint Express
+const express = require('express');
+const app = express();
+
 app.get("/circulating-supply", async (req, res) => {
     try {
         const circulatingSupply = await calculateCirculatingSupply();
-        res.send(circulatingSupply.toString());
+        res.send(circulatingSupply.toString()); // Envoi de la valeur sans décimales
     } catch (error) {
         console.error("Erreur lors du calcul de la circulating supply:", error);
         res.status(500).send("Erreur serveur");
     }
 });
 
-// Lancer le serveur
+// Lancer le serveur (en utilisant le port de l'environnement de déploiement ou localhost par défaut)
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
-    console.log(`Serveur en cours d'exécution sur http://localhost:${PORT}`);
+    console.log(`Serveur en cours d'exécution sur http://0.0.0.0:${PORT}`);
 });
