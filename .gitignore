@@ -1,11 +1,19 @@
-# Node.js
+# Ignore node_modules
 node_modules/
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
 
-# Environnement
+# Ignore les fichiers d'environnement
 .env
 
-# Vercel / Deployment
+# Ignore les fichiers de log
+*.log
+npm-debug.log*
+
+# Ignore les fichiers de cache npm/yarn
+.npm/
+.yarn/
+
+# Ignore les fichiers de configuration de l'éditeur (ex: VSCode)
+.vscode/
+
+# Ignore le dossier de cache de Vercel (si utilisé)
 .vercel/
