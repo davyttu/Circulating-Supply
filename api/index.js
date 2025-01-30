@@ -74,8 +74,4 @@ app.get("/circulating-supply", async (req, res) => {
     }
 });
 
-// Lancer le serveur (en utilisant le port de l'environnement de déploiement ou localhost par défaut)
-const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => {
-    console.log(`Serveur en cours d'exécution sur http://0.0.0.0:${PORT}`);
-});
+module.exports = app;
