@@ -1,65 +1,101 @@
-require('dotenv').config();  // Charger les variables d'environnement
-const express = require('express');
-const Web3 = require('web3');
+const Web3 = require("web3");
+require("dotenv").config();
 
-const app = express();
-
-// Connexion à Infura via Web3
+// Configuration blockchain - Utilisation de la clé API via variable d'environnement
 const web3 = new Web3(`https://base-mainnet.infura.io/v3/${process.env.INFURA_API_KEY}`);
 const tokenContractAddress = process.env.TOKEN_CONTRACT_ADDRESS;
 const communityAddress = process.env.COMMUNITY_ADDRESS;
 const liquidityPoolAddress = process.env.LIQUIDITY_POOL_ADDRESS;
 
-// ABI pour les événements Transfer (ERC20)
+// Log les variables d'environnement pour s'assurer qu'elles sont correctement définies
+console.log("INFURA_API_KEY:", process.env.INFURA_API_KEY);
+console.log("TOKEN_CONTRACT_ADDRESS:", tokenContractAddress);
+console.log("COMMUNITY_ADDRESS:", communityAddress);
+console.log("LIQUIDITY_POOL_ADDRESS:", liquidityPoolAddress);
+
+// ABI pour l'événement Transfer
 const abi = [
-  "event Transfer(address indexed from, address indexed to, uint256 value)"
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": true,
+        "name": "from",
+        "type": "address"
+      },
+      {
+        "indexed": true,
+        "name": "to",
+        "type": "address"
+      },
+      {
+        "indexed": false,
+        "name": "value",
+        "type": "uint256"
+      }
+    ],
+    "name": "Transfer",
+    "type": "event"
+  }
 ];
 
-// Créer une instance du contrat
+// Initialisation du contrat
 const tokenContract = new web3.eth.Contract(abi, tokenContractAddress);
 
-// Calcul de la circulating supply
+// Fonction pour calculer la circulating supply
 async function calculateCirculatingSupply() {
-  let circulatingSupply = web3.utils.toBN(0);
+    let circulatingSupply = web3.utils.toBN(0);  // Déclare circulatingSupply comme un objet BigNumber de Web3
+    console.log("Début du calcul de la circulating supply");
 
-  // Récupérer les événements Transfer
-  const transferEvents = await tokenContract.getPastEvents("Transfer", {
-    fromBlock: 0,
-    toBlock: "latest"
-  });
+    // Filtrer les événements Transfer émis par le contrat
+    try {
+        const transferEvents = await tokenContract.getPastEvents('Transfer', {
+            fromBlock: 0,  // Choisis le bloc de départ selon tes besoins (ex. block 0)
+            toBlock: 'latest' // Le dernier bloc (le plus récent)
+        });
 
-  transferEvents.forEach((event) => {
-    const { from, to, value } = event.returnValues;
+        console.log("Événements de transfert récupérés:", transferEvents.length);
 
-    // Si les tokens proviennent du communityAddress ou liquidityPoolAddress
-    if (
-      from.toLowerCase() === communityAddress.toLowerCase() ||
-      from.toLowerCase() === liquidityPoolAddress.toLowerCase()
-    ) {
-      circulatingSupply = circulatingSupply.add(web3.utils.toBN(value));
+        // Parcourir les événements pour compter les tokens sortants
+        transferEvents.forEach((event) => {
+            const { from, to, value } = event.returnValues;
+
+            console.log(`Événement : De ${from} vers ${to}, valeur: ${value}`);
+
+            // Si les tokens sortent de communityAddress ou de liquidityPoolAddress
+            if (from.toLowerCase() === communityAddress.toLowerCase() || from.toLowerCase() === liquidityPoolAddress.toLowerCase()) {
+                circulatingSupply = circulatingSupply.add(web3.utils.toBN(value));
+                console.log(`Ajout de ${value} à la circulating supply`);
+            }
+        });
+
+        // Retourner la circulating supply en unités humaines (18 décimales)
+        const formattedSupply = web3.utils.fromWei(circulatingSupply, 'ether');
+        console.log("Circulating supply calculée:", formattedSupply);
+        return formattedSupply;
+    } catch (error) {
+        console.error("Erreur lors de la récupération des événements de transfert:", error);
+        throw error;
     }
-  });
-
-  return Math.floor(parseFloat(web3.utils.fromWei(circulatingSupply, 'ether')));
 }
 
-// Route API pour obtenir la circulating supply
-app.get("/api/circulating-supply", async (req, res) => {
-  try {
-    const circulatingSupply = await calculateCirculatingSupply();
-    res.send(circulatingSupply.toString());
-  } catch (error) {
-    console.error("Erreur lors du calcul de la circulating supply:", error);
-    res.status(500).send("Erreur serveur");
-  }
+// Test de la fonction dans un endpoint Express
+const express = require('express');
+const app = express();
+
+app.get("/circulating-supply", async (req, res) => {
+    try {
+        console.log("Requête reçue pour /circulating-supply");
+        const circulatingSupply = await calculateCirculatingSupply();
+        console.log("Réponse à envoyer:", circulatingSupply);
+        res.send(circulatingSupply.toString()); // Envoi de la valeur sans décimales
+    } catch (error) {
+        console.error("Erreur lors du calcul de la circulating supply:", error);
+        res.status(500).send("Erreur serveur");
+    }
 });
 
-// Lancer le serveur en local
-if (process.env.NODE_ENV !== "production") {
-  app.listen(3000, () => {
-    console.log("Serveur démarré sur http://localhost:3000");
-  });
-}
-
-// Export pour Vercel (serverless)
-module.exports = app;
+// Lancer le serveur sur le port 3000
+app.listen(3000, () => {
+  console.log("Serveur en cours d'exécution sur http://localhost:3000");
+});
