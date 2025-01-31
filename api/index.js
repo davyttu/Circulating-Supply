@@ -64,7 +64,13 @@ async function calculateCirculatingSupply() {
 const express = require('express');
 const app = express();
 
-app.get("/q=circulating", async (req, res) => { // Modification de l'URL pour respecter le format demandé
+// ✅ Route racine pour éviter l'erreur "Cannot GET /"
+app.get("/", (req, res) => {
+    res.send("Bienvenue sur l'API de la Circulating Supply");
+});
+
+// ✅ Route au format CoinMarketCap : /q=circulating
+app.get("/q=circulating", async (req, res) => {
     try {
         const circulatingSupply = await calculateCirculatingSupply();
         res.send(circulatingSupply.toString()); // Envoi de la valeur sans décimales
