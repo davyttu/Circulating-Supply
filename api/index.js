@@ -65,11 +65,11 @@ async function calculateCirculatingSupply() {
 
 // Route pour vérifier si l'API fonctionne
 app.get("/", (req, res) => {
-    res.send("L'API fonctionne. Utilisez /api.dws?q=circulating pour obtenir les données.");
+    res.send("L'API fonctionne. Utilisez /circulating-supply?q=circulating pour obtenir les données.");
 });
 
 // Route pour récupérer la circulating supply
-app.get("/api.dws", async (req, res) => {
+app.get("/circulating-supply", async (req, res) => {
     try {
         // Vérifier si le paramètre "q" est égal à "circulating"
         if (req.query.q === "circulating") {
