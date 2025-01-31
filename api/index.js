@@ -1,4 +1,4 @@
-const Web3 = require("web3");
+const { Web3 } = require("web3"); // Importation de Web3
 require("dotenv").config();
 
 // Configuration blockchain - Utilisation de la clé API via variable d'environnement
@@ -38,7 +38,7 @@ const tokenContract = new web3.eth.Contract(abi, tokenContractAddress);
 
 // Fonction pour calculer la circulating supply
 async function calculateCirculatingSupply() {
-    let circulatingSupply = web3.utils.toBN(0);  // Déclare circulatingSupply comme un objet BigNumber de Web3
+    let circulatingSupply = BigInt(0);  // Utilisation de BigInt au lieu de toBN
 
     // Filtrer les événements Transfer émis par le contrat
     const transferEvents = await tokenContract.getPastEvents('Transfer', {
@@ -52,12 +52,12 @@ async function calculateCirculatingSupply() {
 
         // Si les tokens sortent de communityAddress ou de liquidityPoolAddress
         if (from.toLowerCase() === communityAddress.toLowerCase() || from.toLowerCase() === liquidityPoolAddress.toLowerCase()) {
-            circulatingSupply = circulatingSupply.add(web3.utils.toBN(value));
+            circulatingSupply += BigInt(value); // Utilisation de BigInt pour l'addition
         }
     });
 
     // Retourner la circulating supply en unités humaines (18 décimales)
-    return web3.utils.fromWei(circulatingSupply, 'ether');  // Retourne la circulating supply en "ether" (avec 18 décimales)
+    return web3.utils.fromWei(circulatingSupply.toString(), 'ether');  // Convertir BigInt en chaîne avant fromWei
 }
 
 // Test de la fonction dans un endpoint Express
@@ -74,7 +74,8 @@ app.get("/circulating-supply", async (req, res) => {
     }
 });
 
-const port = process.env.PORT || 3000; // Utilise le port de Vercel ou 3000 en local
+// Lancer le serveur sur le port 3000
+const port = process.env.PORT || 3000;
 app.listen(port, () => {
   console.log(`Serveur en cours d'exécution sur http://localhost:${port}`);
 });
