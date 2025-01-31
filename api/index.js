@@ -42,13 +42,13 @@ async function calculateCirculatingSupply() {
 
     // Filtrer les événements Transfer émis par le contrat
     const transferEvents = await tokenContract.getPastEvents('Transfer', {
-        fromBlock: 0,  // Choisis le bloc de départ selon tes besoins (ex. block 0)
+        fromBlock: 0,  // Choisir le bloc de départ selon tes besoins (ex. block 0)
         toBlock: 'latest' // Le dernier bloc (le plus récent)
     });
 
     // Parcourir les événements pour compter les tokens sortants
     transferEvents.forEach((event) => {
-        const { from, to, value } = event.returnValues;
+        const { from, value } = event.returnValues;
 
         // Si les tokens sortent de communityAddress ou de liquidityPoolAddress
         if (from.toLowerCase() === communityAddress.toLowerCase() || from.toLowerCase() === liquidityPoolAddress.toLowerCase()) {
@@ -61,12 +61,12 @@ async function calculateCirculatingSupply() {
 }
 
 // Test de la fonction dans un endpoint Express
-const express = require('express');
+const express = require("express");
 const app = express();
 
 // ✅ Route racine pour éviter l'erreur "Cannot GET /"
 app.get("/", (req, res) => {
-    res.send("Bienvenue sur l'API de la Circulating Supply");
+    res.send("Bienvenue sur l'API de la Circulating Supply. Utilisez /q=circulating pour obtenir la valeur.");
 });
 
 // ✅ Route au format CoinMarketCap : /q=circulating
@@ -83,5 +83,5 @@ app.get("/q=circulating", async (req, res) => {
 // Lancer le serveur sur le port 3000
 const port = process.env.PORT || 3000;
 app.listen(port, () => {
-  console.log(`Serveur en cours d'exécution sur http://localhost:${port}`);
+  console.log(`🚀 Serveur en cours d'exécution sur http://localhost:${port}`);
 });
