@@ -74,4 +74,7 @@ app.get("/circulating-supply", async (req, res) => {
     }
 });
 
-module.exports = app;
+const port = process.env.PORT || 3000; // Utilise le port de Vercel ou 3000 en local
+app.listen(port, () => {
+  console.log(`Serveur en cours d'exécution sur http://localhost:${port}`);
+});
